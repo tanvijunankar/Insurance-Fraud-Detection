@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Prediction Result – Fraud Detector</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --bg:      #0f1117;
+      --surface: #1a1d2e;
+      --card:    #22263a;
+      --text:    #e2e8f0;
+      --muted:   #8892a4;
+      --border:  #2e3347;
+      --radius:  14px;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem 1rem;
+    }
+
+    .wrapper {
+      text-align: center;
+      max-width: 540px;
+      width: 100%;
+      animation: pop .55s cubic-bezier(.23,1.01,.32,1);
+    }
+
+    /* ── Result card ── */
+    .result-card {
+      background: var(--card);
+      border: 2px solid var(--border);
+      border-radius: var(--radius);
+      padding: 3rem 2.5rem;
+      margin-bottom: 1.8rem;
+      position: relative;
+      overflow: hidden;
+    }
+    .result-card::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: var(--glow-color, transparent);
+      opacity: .08;
+      pointer-events: none;
+    }
+
+    /* Fraud state */
+    .result-card.fraud {
+      --glow-color: #ef4444;
+      border-color: rgba(239,68,68,.5);
+    }
+    .result-card.fraud .icon-ring {
+      background: rgba(239,68,68,.12);
+      border: 2px solid rgba(239,68,68,.4);
+    }
+    .result-card.fraud .result-label {
+      color: #f87171;
+    }
+    .result-card.fraud .result-verdict {
+      background: linear-gradient(135deg, #ef4444, #f97316);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    /* Not Fraud state */
+    .result-card.no-fraud {
+      --glow-color: #22c55e;
+      border-color: rgba(34,197,94,.5);
+    }
+    .result-card.no-fraud .icon-ring {
+      background: rgba(34,197,94,.12);
+      border: 2px solid rgba(34,197,94,.4);
+    }
+    .result-card.no-fraud .result-label {
+      color: #4ade80;
+    }
+    .result-card.no-fraud .result-verdict {
+      background: linear-gradient(135deg, #22c55e, #06b6d4);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .icon-ring {
+      width: 90px;
+      height: 90px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2.8rem;
+      margin: 0 auto 1.4rem;
+    }
+
+    .result-label {
+      font-size: .78rem;
+      font-weight: 600;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      margin-bottom: .4rem;
+    }
+
+    .result-verdict {
+      font-size: clamp(2rem, 6vw, 3.2rem);
+      font-weight: 700;
+      line-height: 1.1;
+      margin-bottom: 1.2rem;
+    }
+
+    .result-description {
+      color: var(--muted);
+      font-size: .9rem;
+      line-height: 1.65;
+      max-width: 340px;
+      margin: 0 auto;
+    }
+
+    /* ── Model info pill ── */
+    .model-info {
+      display: inline-flex;
+      align-items: center;
+      gap: .5rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      font-size: .76rem;
+      color: var(--muted);
+      padding: .35rem 1rem;
+      margin-bottom: 2rem;
+    }
+    .model-info span { color: var(--text); font-weight: 500; }
+
+    /* ── Back button ── */
+    .btn-back {
+      display: inline-block;
+      text-decoration: none;
+      background: linear-gradient(135deg, #6c63ff, #8b5cf6);
+      color: #fff;
+      font-family: inherit;
+      font-size: .95rem;
+      font-weight: 600;
+      border-radius: 10px;
+      padding: .8rem 2.5rem;
+      transition: transform .18s, box-shadow .18s;
+      box-shadow: 0 4px 20px rgba(108,99,255,.35);
+    }
+    .btn-back:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 28px rgba(108,99,255,.5);
+    }
+
+    @keyframes pop {
+      0%   { opacity:0; transform:scale(.88); }
+      100% { opacity:1; transform:scale(1); }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="wrapper">
+
+    <!-- Model badge -->
+    <div class="model-info">
+      🤖 Model: <span>{{ model_name }}</span>&nbsp;·&nbsp;Accuracy: <span>{{ accuracy }}</span>
+    </div>
+
+    <!-- Result card -->
+    {% if prediction == 1 %}
+    <div class="result-card fraud">
+      <div class="icon-ring">⚠️</div>
+      <p class="result-label">Prediction Result</p>
+      <h1 class="result-verdict">Fraud Detected</h1>
+      <p class="result-description">
+        Our model has flagged this claim as <strong>potentially fraudulent</strong>.
+        The claim exhibits patterns consistent with known fraud cases.
+        Please escalate for manual review.
+      </p>
+    </div>
+    {% else %}
+    <div class="result-card no-fraud">
+      <div class="icon-ring">✅</div>
+      <p class="result-label">Prediction Result</p>
+      <h1 class="result-verdict">Not Fraud</h1>
+      <p class="result-description">
+        Our model has assessed this claim as <strong>legitimate</strong>.
+        No fraudulent patterns were detected based on the provided claim details.
+        You may proceed with normal processing.
+      </p>
+    </div>
+    {% endif %}
+
+    <a href="/" class="btn-back">← Analyse Another Claim</a>
+
+  </div>
+
+</body>
+</html>
