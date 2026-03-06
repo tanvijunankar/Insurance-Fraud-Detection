@@ -1,21 +1,40 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Prediction Result – Fraud Detector</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Fraud Risk Result · InsureGuard AI</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+    rel="stylesheet" />
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet" />
   <style>
+    /* ═══════════════════════════════════════════════════════════
+       TOKENS
+    ═══════════════════════════════════════════════════════════ */
     :root {
-      --bg:      #0f1117;
-      --surface: #1a1d2e;
-      --card:    #22263a;
-      --text:    #e2e8f0;
-      --muted:   #8892a4;
-      --border:  #2e3347;
-      --radius:  14px;
+      --bg: #080c18;
+      --surface: #0f1525;
+      --card: #141929;
+      --border: rgba(255, 255, 255, .07);
+      --text: #e2e8f0;
+      --muted: #64748b;
+      --label: #94a3b8;
+      --accent: #6366f1;
+      --accent2: #818cf8;
+      --cyan: #22d3ee;
+      --green: #10b981;
+      --red: #ef4444;
+      --r: 16px;
     }
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
 
     body {
       font-family: 'Inter', sans-serif;
@@ -23,186 +42,610 @@
       color: var(--text);
       min-height: 100vh;
       display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
+    }
+
+    /* Grid background */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(99, 102, 241, .04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(99, 102, 241, .04) 1px, transparent 1px);
+      background-size: 44px 44px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ── Nav ── */
+    nav {
+      position: relative;
+      z-index: 10;
+      background: rgba(8, 12, 24, .9);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
+      padding: 0 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 64px;
+      flex-shrink: 0;
+    }
+
+    .nav-brand {
+      display: flex;
+      align-items: center;
+      gap: .75rem;
+    }
+
+    .nav-logo {
+      width: 36px;
+      height: 36px;
+      background: linear-gradient(135deg, var(--accent), var(--cyan));
+      border-radius: 10px;
+      display: flex;
       align-items: center;
       justify-content: center;
-      padding: 2rem 1rem;
+      font-size: 1rem;
+      color: #fff;
+      box-shadow: 0 0 16px rgba(99, 102, 241, .5);
     }
 
-    .wrapper {
-      text-align: center;
-      max-width: 540px;
+    .nav-brand-text h1 {
+      font-size: .9rem;
+      font-weight: 700;
+      background: linear-gradient(90deg, #fff, var(--accent2));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .nav-brand-text p {
+      font-size: .68rem;
+      color: var(--muted);
+    }
+
+    .nav-back {
+      display: inline-flex;
+      align-items: center;
+      gap: .5rem;
+      text-decoration: none;
+      color: var(--label);
+      font-size: .8rem;
+      font-weight: 500;
+      background: rgba(255, 255, 255, .05);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: .4rem .9rem;
+      transition: color .2s, background .2s, border-color .2s;
+    }
+
+    .nav-back:hover {
+      color: #fff;
+      background: rgba(99, 102, 241, .12);
+      border-color: rgba(99, 102, 241, .3);
+    }
+
+    /* ══════════════════════════════════════════════════════════
+       MAIN CONTENT
+    ═══════════════════════════════════════════════════════════ */
+    .main {
+      flex: 1;
+      position: relative;
+      z-index: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 3rem 1.5rem;
+    }
+
+    .result-wrapper {
       width: 100%;
-      animation: pop .55s cubic-bezier(.23,1.01,.32,1);
+      max-width: 680px;
+      display: flex;
+      flex-direction: column;
+      gap: 1.2rem;
+      animation: fadeUp .55s cubic-bezier(.23, 1, .32, 1);
     }
 
-    /* ── Result card ── */
-    .result-card {
+    /* ── Label pill row ── */
+    .meta-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: .75rem;
+      flex-wrap: wrap;
+    }
+
+    .meta-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: .4rem;
+      font-size: .7rem;
+      font-weight: 600;
+      border-radius: 999px;
+      padding: .3rem .85rem;
+      border: 1px solid var(--border);
       background: var(--card);
-      border: 2px solid var(--border);
-      border-radius: var(--radius);
-      padding: 3rem 2.5rem;
-      margin-bottom: 1.8rem;
+      color: var(--label);
+    }
+
+    .meta-pill i {
+      font-size: .65rem;
+    }
+
+    .meta-pill.model {
+      color: var(--accent2);
+      border-color: rgba(129, 140, 248, .3);
+      background: rgba(129, 140, 248, .07);
+    }
+
+    .meta-pill.acc {
+      color: var(--cyan);
+      border-color: rgba(34, 211, 238, .3);
+      background: rgba(34, 211, 238, .07);
+    }
+
+    .meta-pill.time {
+      color: var(--green);
+      border-color: rgba(16, 185, 129, .3);
+      background: rgba(16, 185, 129, .07);
+    }
+
+    /* ══════════════════════════════════════════════════════════
+       VERDICT CARD
+    ═══════════════════════════════════════════════════════════ */
+    .verdict-card {
+      border-radius: var(--r);
+      border: 2px solid transparent;
+      padding: 2.8rem 2.5rem;
+      text-align: center;
       position: relative;
       overflow: hidden;
     }
-    .result-card::before {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background: var(--glow-color, transparent);
-      opacity: .08;
-      pointer-events: none;
+
+    /* Fraud */
+    .verdict-card.fraud {
+      background: radial-gradient(ellipse at top, rgba(239, 68, 68, .12) 0%, var(--card) 65%);
+      border-color: rgba(239, 68, 68, .45);
     }
 
-    /* Fraud state */
-    .result-card.fraud {
-      --glow-color: #ef4444;
-      border-color: rgba(239,68,68,.5);
+    .verdict-card.fraud .icon-wrap {
+      background: rgba(239, 68, 68, .12);
+      border: 2px solid rgba(239, 68, 68, .35);
+      box-shadow: 0 0 40px rgba(239, 68, 68, .2);
+      color: var(--red);
     }
-    .result-card.fraud .icon-ring {
-      background: rgba(239,68,68,.12);
-      border: 2px solid rgba(239,68,68,.4);
-    }
-    .result-card.fraud .result-label {
+
+    .verdict-card.fraud .verdict-label {
       color: #f87171;
     }
-    .result-card.fraud .result-verdict {
+
+    .verdict-card.fraud .verdict-title {
+      color: #fca5a5;
+    }
+
+    .verdict-card.fraud .verdict-title span {
       background: linear-gradient(135deg, #ef4444, #f97316);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
     }
 
-    /* Not Fraud state */
-    .result-card.no-fraud {
-      --glow-color: #22c55e;
-      border-color: rgba(34,197,94,.5);
+    .verdict-card.fraud .risk-bar-fill {
+      background: linear-gradient(90deg, #ef4444, #f97316);
     }
-    .result-card.no-fraud .icon-ring {
-      background: rgba(34,197,94,.12);
-      border: 2px solid rgba(34,197,94,.4);
+
+    /* Not Fraud */
+    .verdict-card.no-fraud {
+      background: radial-gradient(ellipse at top, rgba(16, 185, 129, .1) 0%, var(--card) 65%);
+      border-color: rgba(16, 185, 129, .4);
     }
-    .result-card.no-fraud .result-label {
+
+    .verdict-card.no-fraud .icon-wrap {
+      background: rgba(16, 185, 129, .12);
+      border: 2px solid rgba(16, 185, 129, .35);
+      box-shadow: 0 0 40px rgba(16, 185, 129, .2);
+      color: var(--green);
+    }
+
+    .verdict-card.no-fraud .verdict-label {
       color: #4ade80;
     }
-    .result-card.no-fraud .result-verdict {
-      background: linear-gradient(135deg, #22c55e, #06b6d4);
+
+    .verdict-card.no-fraud .verdict-title {
+      color: #86efac;
+    }
+
+    .verdict-card.no-fraud .verdict-title span {
+      background: linear-gradient(135deg, #10b981, #06b6d4);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
     }
 
-    .icon-ring {
-      width: 90px;
-      height: 90px;
+    .verdict-card.no-fraud .risk-bar-fill {
+      background: linear-gradient(90deg, #10b981, #06b6d4);
+    }
+
+    /* ── Glow corner ornament ── */
+    .verdict-card::after {
+      content: '';
+      position: absolute;
+      width: 220px;
+      height: 220px;
+      border-radius: 50%;
+      top: -80px;
+      right: -80px;
+      pointer-events: none;
+    }
+
+    .verdict-card.fraud::after {
+      background: radial-gradient(circle, rgba(239, 68, 68, .18), transparent 70%);
+    }
+
+    .verdict-card.no-fraud::after {
+      background: radial-gradient(circle, rgba(16, 185, 129, .15), transparent 70%);
+    }
+
+    /* ── Icon ── */
+    .icon-wrap {
+      width: 96px;
+      height: 96px;
       border-radius: 50%;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 2.8rem;
-      margin: 0 auto 1.4rem;
+      font-size: 2.6rem;
+      margin: 0 auto 1.5rem;
+      animation: bounceIn .6s cubic-bezier(.23, 1, .32, 1) .2s both;
     }
 
-    .result-label {
-      font-size: .78rem;
-      font-weight: 600;
-      letter-spacing: .1em;
-      text-transform: uppercase;
-      margin-bottom: .4rem;
-    }
-
-    .result-verdict {
-      font-size: clamp(2rem, 6vw, 3.2rem);
+    .verdict-label {
+      font-size: .7rem;
       font-weight: 700;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      margin-bottom: .5rem;
+    }
+
+    .verdict-title {
+      font-size: clamp(2rem, 5vw, 3rem);
+      font-weight: 800;
       line-height: 1.1;
       margin-bottom: 1.2rem;
     }
 
-    .result-description {
-      color: var(--muted);
-      font-size: .9rem;
-      line-height: 1.65;
-      max-width: 340px;
+    .verdict-desc {
+      color: var(--label);
+      font-size: .875rem;
+      line-height: 1.7;
+      max-width: 420px;
       margin: 0 auto;
     }
 
-    /* ── Model info pill ── */
-    .model-info {
+    /* ── Risk bar ── */
+    .risk-section {
+      margin-top: 2rem;
+      padding-top: 1.6rem;
+      border-top: 1px solid rgba(255, 255, 255, .06);
+    }
+
+    .risk-label-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: .72rem;
+      font-weight: 600;
+      color: var(--label);
+      margin-bottom: .6rem;
+    }
+
+    .risk-label-row .risk-pct {
+      font-size: .85rem;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .risk-track {
+      height: 8px;
+      background: rgba(255, 255, 255, .08);
+      border-radius: 999px;
+      overflow: hidden;
+    }
+
+    .risk-bar-fill {
+      height: 100%;
+      border-radius: 999px;
+      transition: width 1.2s cubic-bezier(.23, 1, .32, 1);
+      width: 0;
+    }
+
+    /* ══════════════════════════════════════════════════════════
+       DETAIL CARDS ROW
+    ═══════════════════════════════════════════════════════════ */
+    .detail-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 1rem;
+    }
+
+    .detail-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.1rem 1.2rem;
+      display: flex;
+      flex-direction: column;
+      gap: .4rem;
+      transition: border-color .2s;
+    }
+
+    .detail-card:hover {
+      border-color: rgba(99, 102, 241, .3);
+    }
+
+    .detail-card-icon {
+      font-size: 1.1rem;
+      margin-bottom: .2rem;
+    }
+
+    .detail-card-label {
+      font-size: .68rem;
+      font-weight: 600;
+      color: var(--muted);
+      letter-spacing: .06em;
+      text-transform: uppercase;
+    }
+
+    .detail-card-value {
+      font-size: .9rem;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .detail-card-sub {
+      font-size: .68rem;
+      color: var(--muted);
+    }
+
+    /* ── CTA row ── */
+    .cta-row {
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .btn-primary {
       display: inline-flex;
       align-items: center;
-      gap: .5rem;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 999px;
-      font-size: .76rem;
-      color: var(--muted);
-      padding: .35rem 1rem;
-      margin-bottom: 2rem;
-    }
-    .model-info span { color: var(--text); font-weight: 500; }
-
-    /* ── Back button ── */
-    .btn-back {
-      display: inline-block;
-      text-decoration: none;
-      background: linear-gradient(135deg, #6c63ff, #8b5cf6);
+      gap: .6rem;
+      background: linear-gradient(135deg, var(--accent), #8b5cf6);
       color: #fff;
+      text-decoration: none;
       font-family: inherit;
-      font-size: .95rem;
-      font-weight: 600;
+      font-size: .9rem;
+      font-weight: 700;
+      border: none;
       border-radius: 10px;
-      padding: .8rem 2.5rem;
+      padding: .8rem 2rem;
+      box-shadow: 0 4px 20px rgba(99, 102, 241, .4);
+      cursor: pointer;
       transition: transform .18s, box-shadow .18s;
-      box-shadow: 0 4px 20px rgba(108,99,255,.35);
-    }
-    .btn-back:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 8px 28px rgba(108,99,255,.5);
     }
 
-    @keyframes pop {
-      0%   { opacity:0; transform:scale(.88); }
-      100% { opacity:1; transform:scale(1); }
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 28px rgba(99, 102, 241, .55);
+    }
+
+    /* ══════════════════════════════════════════════════════════
+       KEYFRAMES
+    ═══════════════════════════════════════════════════════════ */
+    @keyframes fadeUp {
+      from {
+        opacity: 0;
+        transform: translateY(28px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes bounceIn {
+      0% {
+        opacity: 0;
+        transform: scale(.4);
+      }
+
+      60% {
+        transform: scale(1.1);
+      }
+
+      80% {
+        transform: scale(.95);
+      }
+
+      100% {
+        opacity: 1;
+        transform: scale(1);
+      }
     }
   </style>
 </head>
+
 <body>
 
-  <div class="wrapper">
-
-    <!-- Model badge -->
-    <div class="model-info">
-      🤖 Model: <span>{{ model_name }}</span>&nbsp;·&nbsp;Accuracy: <span>{{ accuracy }}</span>
+  <!-- ══════════════════════════════════════════════════════════
+     NAV
+═══════════════════════════════════════════════════════════ -->
+  <nav>
+    <div class="nav-brand">
+      <div class="nav-logo"><i class="fa-solid fa-shield-halved"></i></div>
+      <div class="nav-brand-text">
+        <h1>InsureGuard AI</h1>
+        <p>Fraud Detection Dashboard</p>
+      </div>
     </div>
+    <a href="/" class="nav-back"><i class="fa-solid fa-arrow-left"></i> New Analysis</a>
+  </nav>
 
-    <!-- Result card -->
-    {% if prediction == 1 %}
-    <div class="result-card fraud">
-      <div class="icon-ring">⚠️</div>
-      <p class="result-label">Prediction Result</p>
-      <h1 class="result-verdict">Fraud Detected</h1>
-      <p class="result-description">
-        Our model has flagged this claim as <strong>potentially fraudulent</strong>.
-        The claim exhibits patterns consistent with known fraud cases.
-        Please escalate for manual review.
+  <!-- ══════════════════════════════════════════════════════════
+     MAIN
+═══════════════════════════════════════════════════════════ -->
+  <div class="main">
+    <div class="result-wrapper">
+
+      <!-- ── Meta pill row ── -->
+      <div class="meta-row">
+        <span class="meta-pill model"><i class="fa-solid fa-brain"></i> Model: {{ model_name }}</span>
+        <span class="meta-pill acc"><i class="fa-solid fa-chart-bar"></i> Accuracy: {{ accuracy }}</span>
+        <span class="meta-pill time"><i class="fa-solid fa-bolt"></i> Instant Prediction</span>
+      </div>
+
+      <!-- ══════════════════════════════════════════════════════
+         VERDICT CARD
+    ═══════════════════════════════════════════════════════ -->
+      {% if prediction == 1 %}
+      <div class="verdict-card fraud">
+        <div class="icon-wrap"><i class="fa-solid fa-triangle-exclamation"></i></div>
+        <p class="verdict-label"><i class="fa-solid fa-circle-exclamation"></i> &nbsp; Fraud Alert Triggered</p>
+        <h1 class="verdict-title"><span>Fraud Detected</span></h1>
+        <p class="verdict-desc">
+          Our model has identified this claim as <strong>potentially fraudulent</strong>. The submitted
+          details exhibit patterns strongly associated with known fraud cases.
+          Immediate manual review is recommended before processing.
+        </p>
+
+        <!-- Risk bar -->
+        <div class="risk-section">
+          <div class="risk-label-row">
+            <span><i class="fa-solid fa-gauge-high"></i> &nbsp; Estimated Fraud Risk</span>
+            <span class="risk-pct" id="risk-pct">High</span>
+          </div>
+          <div class="risk-track">
+            <div class="risk-bar-fill" id="risk-bar" style="width:0"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Detail cards – fraud -->
+      <div class="detail-row">
+        <div class="detail-card">
+          <div class="detail-card-icon" style="color:#ef4444"><i class="fa-solid fa-circle-exclamation"></i></div>
+          <div class="detail-card-label">Risk Level</div>
+          <div class="detail-card-value" style="color:#f87171">HIGH RISK</div>
+          <div class="detail-card-sub">Escalate for review</div>
+        </div>
+        <div class="detail-card">
+          <div class="detail-card-icon" style="color:#f97316"><i class="fa-solid fa-flag"></i></div>
+          <div class="detail-card-label">Action Required</div>
+          <div class="detail-card-value">Manual Review</div>
+          <div class="detail-card-sub">Do not auto-approve</div>
+        </div>
+        <div class="detail-card">
+          <div class="detail-card-icon" style="color:#818cf8"><i class="fa-solid fa-brain"></i></div>
+          <div class="detail-card-label">Decision By</div>
+          <div class="detail-card-value">{{ model_name }}</div>
+          <div class="detail-card-sub">ML classifier</div>
+        </div>
+        <div class="detail-card">
+          <div class="detail-card-icon" style="color:#22d3ee"><i class="fa-solid fa-shield-halved"></i></div>
+          <div class="detail-card-label">Confidence</div>
+          <div class="detail-card-value">{{ accuracy }}</div>
+          <div class="detail-card-sub">Model test accuracy</div>
+        </div>
+      </div>
+
+      {% else %}
+
+      <div class="verdict-card no-fraud">
+        <div class="icon-wrap"><i class="fa-solid fa-circle-check"></i></div>
+        <p class="verdict-label"><i class="fa-solid fa-shield-check"></i> &nbsp; Claim Cleared</p>
+        <h1 class="verdict-title"><span>Not Fraud</span></h1>
+        <p class="verdict-desc">
+          Our model has assessed this claim as <strong>legitimate</strong>.
+          No significant fraud patterns were detected in the submitted claim details.
+          You may proceed with standard processing procedures.
+        </p>
+
+        <!-- Risk bar -->
+        <div class="risk-section">
+          <div class="risk-label-row">
+            <span><i class="fa-solid fa-gauge-high"></i> &nbsp; Estimated Fraud Risk</span>
+            <span class="risk-pct" id="risk-pct">Low</span>
+          </div>
+          <div class="risk-track">
+            <div class="risk-bar-fill" id="risk-bar" style="width:0"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Detail cards – not fraud -->
+      <div class="detail-row">
+        <div class="detail-card">
+          <div class="detail-card-icon" style="color:#10b981"><i class="fa-solid fa-circle-check"></i></div>
+          <div class="detail-card-label">Risk Level</div>
+          <div class="detail-card-value" style="color:#4ade80">LOW RISK</div>
+          <div class="detail-card-sub">Claim appears legitimate</div>
+        </div>
+        <div class="detail-card">
+          <div class="detail-card-icon" style="color:#06b6d4"><i class="fa-solid fa-thumbs-up"></i></div>
+          <div class="detail-card-label">Recommendation</div>
+          <div class="detail-card-value">Process Claim</div>
+          <div class="detail-card-sub">Standard workflow</div>
+        </div>
+        <div class="detail-card">
+          <div class="detail-card-icon" style="color:#818cf8"><i class="fa-solid fa-brain"></i></div>
+          <div class="detail-card-label">Decision By</div>
+          <div class="detail-card-value">{{ model_name }}</div>
+          <div class="detail-card-sub">ML classifier</div>
+        </div>
+        <div class="detail-card">
+          <div class="detail-card-icon" style="color:#22d3ee"><i class="fa-solid fa-shield-halved"></i></div>
+          <div class="detail-card-label">Model Accuracy</div>
+          <div class="detail-card-value">{{ accuracy }}</div>
+          <div class="detail-card-sub">Test set performance</div>
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- ── CTA ── -->
+      <div class="cta-row">
+        <a href="/" class="btn-primary">
+          <i class="fa-solid fa-rotate-left"></i> Analyze Another Claim
+        </a>
+      </div>
+
+      <!-- Disclaimer -->
+      <p style="text-align:center;font-size:.68rem;color:var(--muted);line-height:1.6;">
+        <i class="fa-solid fa-circle-info"></i>
+        This prediction is generated by a machine learning model and is intended to assist
+        human reviewers — not replace them. Final decisions should involve professional judgment.
       </p>
-    </div>
-    {% else %}
-    <div class="result-card no-fraud">
-      <div class="icon-ring">✅</div>
-      <p class="result-label">Prediction Result</p>
-      <h1 class="result-verdict">Not Fraud</h1>
-      <p class="result-description">
-        Our model has assessed this claim as <strong>legitimate</strong>.
-        No fraudulent patterns were detected based on the provided claim details.
-        You may proceed with normal processing.
-      </p>
-    </div>
-    {% endif %}
 
-    <a href="/" class="btn-back">← Analyse Another Claim</a>
-
+    </div>
   </div>
 
+  <!-- ══════════════════════════════════════════════════════════
+     SCRIPT – animate risk bar on load
+═══════════════════════════════════════════════════════════ -->
+  <script>
+    const isFraud = {{ prediction }};
+    const barEl = document.getElementById('risk-bar');
+
+    // Animate the risk bar to a representative width after load
+    requestAnimationFrame(() => {
+      setTimeout(() => {
+        barEl.style.width = isFraud ? '82%' : '18%';
+      }, 400);
+    });
+  </script>
+
 </body>
+
 </html>

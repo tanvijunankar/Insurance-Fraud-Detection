@@ -1,446 +1,1030 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Insurance Fraud Detector</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>InsureGuard AI · Fraud Detection Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+    rel="stylesheet" />
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet" />
   <style>
+    /* ═══════════════════════════════════════════════════════════
+       DESIGN TOKENS
+    ═══════════════════════════════════════════════════════════ */
     :root {
-      --bg:       #0f1117;
-      --surface:  #1a1d2e;
-      --card:     #22263a;
-      --accent:   #6c63ff;
-      --accent2:  #a78bfa;
-      --danger:   #ef4444;
-      --text:     #e2e8f0;
-      --muted:    #8892a4;
-      --border:   #2e3347;
-      --radius:   12px;
+      --bg: #080c18;
+      --surface: #0f1525;
+      --card: #141929;
+      --card-hover: #19203a;
+      --border: rgba(255, 255, 255, .07);
+      --border-glow: rgba(99, 102, 241, .4);
+      --accent: #6366f1;
+      --accent2: #818cf8;
+      --cyan: #22d3ee;
+      --green: #10b981;
+      --amber: #f59e0b;
+      --red: #ef4444;
+      --text: #e2e8f0;
+      --muted: #64748b;
+      --label: #94a3b8;
+      --r: 14px;
     }
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
 
     body {
       font-family: 'Inter', sans-serif;
       background: var(--bg);
       color: var(--text);
       min-height: 100vh;
-      padding: 2rem 1rem 4rem;
+      overflow-x: hidden;
     }
 
-    /* ── Header ── */
-    .header {
-      text-align: center;
-      margin-bottom: 2.5rem;
-      animation: fadeDown .6s ease;
+    /* ── Animated grid background ── */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(99, 102, 241, .04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(99, 102, 241, .04) 1px, transparent 1px);
+      background-size: 44px 44px;
+      pointer-events: none;
+      z-index: 0;
     }
-    .header .badge {
-      display: inline-block;
-      background: rgba(108,99,255,.15);
-      color: var(--accent2);
-      font-size: .75rem;
-      font-weight: 600;
-      letter-spacing: .08em;
-      text-transform: uppercase;
-      border: 1px solid rgba(108,99,255,.3);
-      border-radius: 999px;
-      padding: .3rem .9rem;
-      margin-bottom: .9rem;
+
+    /* ══════════════════════════════════════════════════════════
+       TOP NAVIGATION / HEADER
+    ═══════════════════════════════════════════════════════════ */
+    nav {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(8, 12, 24, .85);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
+      padding: 0 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 64px;
     }
-    .header h1 {
-      font-size: clamp(1.6rem, 4vw, 2.4rem);
+
+    .nav-brand {
+      display: flex;
+      align-items: center;
+      gap: .75rem;
+    }
+
+    .nav-logo {
+      width: 36px;
+      height: 36px;
+      background: linear-gradient(135deg, var(--accent), var(--cyan));
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1rem;
+      color: #fff;
+      flex-shrink: 0;
+      box-shadow: 0 0 16px rgba(99, 102, 241, .5);
+    }
+
+    .nav-brand-text h1 {
+      font-size: .9rem;
       font-weight: 700;
-      background: linear-gradient(135deg, #a78bfa, #60a5fa);
+      background: linear-gradient(90deg, #fff, var(--accent2));
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
-      line-height: 1.25;
     }
-    .header p {
-      margin-top: .6rem;
+
+    .nav-brand-text p {
+      font-size: .68rem;
+      color: var(--muted);
+    }
+
+    .nav-badges {
+      display: flex;
+      gap: .6rem;
+      align-items: center;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: .35rem;
+      font-size: .68rem;
+      font-weight: 600;
+      border-radius: 999px;
+      padding: .3rem .75rem;
+      border: 1px solid;
+    }
+
+    .badge-live {
+      color: #10b981;
+      border-color: rgba(16, 185, 129, .3);
+      background: rgba(16, 185, 129, .08);
+    }
+
+    .badge-ml {
+      color: var(--accent2);
+      border-color: rgba(129, 140, 248, .3);
+      background: rgba(129, 140, 248, .08);
+    }
+
+    .badge-live i {
+      font-size: .45rem;
+      animation: pulse 2s infinite;
+    }
+
+    /* ══════════════════════════════════════════════════════════
+       HERO SECTION
+    ═══════════════════════════════════════════════════════════ */
+    .hero {
+      position: relative;
+      z-index: 1;
+      padding: 3rem 2rem 2rem;
+      text-align: center;
+      max-width: 820px;
+      margin: 0 auto;
+    }
+
+    .hero-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: .5rem;
+      background: rgba(99, 102, 241, .1);
+      border: 1px solid rgba(99, 102, 241, .25);
+      border-radius: 999px;
+      padding: .35rem 1rem;
+      font-size: .72rem;
+      font-weight: 600;
+      color: var(--accent2);
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      margin-bottom: 1.2rem;
+    }
+
+    .hero h2 {
+      font-size: clamp(1.8rem, 4.5vw, 2.8rem);
+      font-weight: 800;
+      line-height: 1.18;
+      background: linear-gradient(135deg, #fff 30%, var(--accent2) 70%, var(--cyan));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: .8rem;
+    }
+
+    .hero p {
       color: var(--muted);
       font-size: .95rem;
+      line-height: 1.7;
     }
 
-    /* ── Form card ── */
-    .card {
+    /* ── Stats row ── */
+    .stats {
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin: 2rem auto 0;
+      max-width: 600px;
+    }
+
+    .stat-pill {
       background: var(--card);
       border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 2rem;
-      max-width: 900px;
-      margin: 0 auto;
-      animation: fadeUp .6s ease;
+      border-radius: 999px;
+      padding: .5rem 1.2rem;
+      font-size: .78rem;
+      display: flex;
+      align-items: center;
+      gap: .5rem;
     }
 
-    .section-title {
-      font-size: .7rem;
-      font-weight: 600;
-      letter-spacing: .12em;
-      text-transform: uppercase;
+    .stat-pill i {
       color: var(--accent2);
-      margin-bottom: 1rem;
-      padding-bottom: .5rem;
-      border-bottom: 1px solid var(--border);
     }
 
-    .grid {
+    .stat-pill b {
+      color: #fff;
+    }
+
+    .stat-pill span {
+      color: var(--muted);
+    }
+
+    /* ══════════════════════════════════════════════════════════
+       LAYOUT
+    ═══════════════════════════════════════════════════════════ */
+    .page-body {
+      position: relative;
+      z-index: 1;
+      max-width: 980px;
+      margin: 2.5rem auto 5rem;
+      padding: 0 1.5rem;
+    }
+
+    /* ══════════════════════════════════════════════════════════
+       SECTION CARDS
+    ═══════════════════════════════════════════════════════════ */
+    .section-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      margin-bottom: 1.5rem;
+      overflow: hidden;
+      transition: border-color .25s;
+    }
+
+    .section-card:hover {
+      border-color: var(--border-glow);
+    }
+
+    .section-header {
+      display: flex;
+      align-items: center;
+      gap: .85rem;
+      padding: 1.1rem 1.6rem;
+      border-bottom: 1px solid var(--border);
+      background: rgba(255, 255, 255, .018);
+    }
+
+    .section-icon {
+      width: 38px;
+      height: 38px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: .95rem;
+      flex-shrink: 0;
+    }
+
+    .si-policy {
+      background: rgba(99, 102, 241, .15);
+      color: var(--accent2);
+    }
+
+    .si-insured {
+      background: rgba(34, 211, 238, .15);
+      color: var(--cyan);
+    }
+
+    .si-incident {
+      background: rgba(245, 158, 11, .15);
+      color: var(--amber);
+    }
+
+    .si-claim {
+      background: rgba(16, 185, 129, .15);
+      color: var(--green);
+    }
+
+    .si-vehicle {
+      background: rgba(239, 68, 68, .15);
+      color: var(--red);
+    }
+
+    .section-header-text h3 {
+      font-size: .9rem;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .section-header-text p {
+      font-size: .72rem;
+      color: var(--muted);
+      margin-top: .1rem;
+    }
+
+    .section-body {
+      padding: 1.4rem 1.6rem;
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-      gap: 1.2rem;
-      margin-bottom: 1.6rem;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 1.1rem;
+    }
+
+    /* ══════════════════════════════════════════════════════════
+       FORM FIELDS
+    ═══════════════════════════════════════════════════════════ */
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: .38rem;
     }
 
     .field label {
-      display: block;
-      font-size: .78rem;
-      font-weight: 500;
-      color: var(--muted);
-      margin-bottom: .4rem;
+      font-size: .72rem;
+      font-weight: 600;
+      color: var(--label);
+      display: flex;
+      align-items: center;
+      gap: .4rem;
+      letter-spacing: .02em;
     }
+
+    .field label i {
+      font-size: .65rem;
+      opacity: .7;
+    }
+
+    /* tooltip */
+    .tip {
+      position: relative;
+      cursor: help;
+    }
+
+    .tip i.fa-circle-info {
+      font-size: .65rem;
+      color: var(--muted);
+      margin-left: .25rem;
+    }
+
+    .tip:hover::after {
+      content: attr(data-tip);
+      position: absolute;
+      bottom: calc(100% + 6px);
+      left: 50%;
+      transform: translateX(-50%);
+      background: #1e2640;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text);
+      font-size: .7rem;
+      white-space: nowrap;
+      padding: .35rem .65rem;
+      pointer-events: none;
+      z-index: 50;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, .4);
+    }
+
     .field input,
     .field select {
       width: 100%;
       background: var(--surface);
       border: 1px solid var(--border);
-      border-radius: 8px;
+      border-radius: 9px;
       color: var(--text);
       font-family: inherit;
-      font-size: .88rem;
-      padding: .6rem .85rem;
-      transition: border-color .2s, box-shadow .2s;
+      font-size: .85rem;
+      padding: .58rem .85rem;
       outline: none;
+      transition: border-color .2s, box-shadow .2s, background .2s;
+      -webkit-appearance: none;
+      appearance: none;
     }
+
+    .field select {
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath fill='%2364748b' d='M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right .75rem center;
+      background-size: 16px;
+      padding-right: 2.2rem;
+    }
+
     .field input:focus,
     .field select:focus {
       border-color: var(--accent);
-      box-shadow: 0 0 0 3px rgba(108,99,255,.2);
+      box-shadow: 0 0 0 3px rgba(99, 102, 241, .18);
+      background: rgba(99, 102, 241, .04);
     }
-    .field select option { background: var(--surface); }
 
-    /* ── Submit ── */
-    .btn-wrap { text-align: center; margin-top: 1.5rem; }
-    button[type="submit"] {
-      background: linear-gradient(135deg, var(--accent), #8b5cf6);
+    .field select option {
+      background: #1a1f35;
+    }
+
+    /* ══════════════════════════════════════════════════════════
+       SUBMIT AREA
+    ═══════════════════════════════════════════════════════════ */
+    .submit-area {
+      margin-top: 2rem;
+      text-align: center;
+    }
+
+    .submit-area p {
+      font-size: .73rem;
+      color: var(--muted);
+      margin-bottom: 1rem;
+    }
+
+    .submit-area p i {
+      color: var(--green);
+      margin-right: .3rem;
+    }
+
+    .btn-submit {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      gap: .75rem;
+      background: linear-gradient(135deg, var(--accent) 0%, #8b5cf6 50%, #a855f7 100%);
       color: #fff;
       border: none;
-      border-radius: 10px;
+      border-radius: 12px;
       font-family: inherit;
       font-size: 1rem;
-      font-weight: 600;
-      padding: .85rem 3rem;
+      font-weight: 700;
+      padding: 1rem 3rem;
       cursor: pointer;
-      transition: transform .18s, box-shadow .18s, opacity .18s;
-      box-shadow: 0 4px 24px rgba(108,99,255,.35);
+      box-shadow: 0 6px 30px rgba(99, 102, 241, .45);
+      transition: transform .2s, box-shadow .2s;
+      letter-spacing: .02em;
+      overflow: hidden;
     }
-    button[type="submit"]:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 8px 32px rgba(108,99,255,.5);
-    }
-    button[type="submit"]:active { transform: translateY(0); opacity: .85; }
 
-    /* ── Animations ── */
-    @keyframes fadeDown {
-      from { opacity:0; transform:translateY(-18px); }
-      to   { opacity:1; transform:translateY(0); }
+    .btn-submit::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(255, 255, 255, .12), transparent);
+      opacity: 0;
+      transition: opacity .2s;
     }
+
+    .btn-submit:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 10px 40px rgba(99, 102, 241, .6);
+    }
+
+    .btn-submit:hover::before {
+      opacity: 1;
+    }
+
+    .btn-submit:active {
+      transform: translateY(-1px);
+    }
+
+    .btn-submit i {
+      font-size: 1.1rem;
+    }
+
+    /* ── Loading overlay ── */
+    #loading-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(8, 12, 24, .82);
+      backdrop-filter: blur(6px);
+      z-index: 999;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 1.2rem;
+    }
+
+    #loading-overlay.active {
+      display: flex;
+    }
+
+    .spinner {
+      width: 56px;
+      height: 56px;
+      border: 3px solid rgba(99, 102, 241, .2);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin .85s linear infinite;
+    }
+
+    #loading-overlay p {
+      font-size: .9rem;
+      font-weight: 600;
+      color: var(--accent2);
+      animation: blink 1.5s ease-in-out infinite;
+    }
+
+    /* ══════════════════════════════════════════════════════════
+       KEYFRAMES
+    ═══════════════════════════════════════════════════════════ */
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    @keyframes pulse {
+
+      0%,
+      100% {
+        opacity: .4;
+      }
+
+      50% {
+        opacity: 1;
+      }
+    }
+
+    @keyframes blink {
+
+      0%,
+      100% {
+        opacity: .5;
+      }
+
+      50% {
+        opacity: 1;
+      }
+    }
+
     @keyframes fadeUp {
-      from { opacity:0; transform:translateY(18px); }
-      to   { opacity:1; transform:translateY(0); }
+      from {
+        opacity: 0;
+        transform: translateY(22px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .section-card {
+      animation: fadeUp .5s ease both;
+    }
+
+    .section-card:nth-child(1) {
+      animation-delay: .05s;
+    }
+
+    .section-card:nth-child(2) {
+      animation-delay: .12s;
+    }
+
+    .section-card:nth-child(3) {
+      animation-delay: .19s;
+    }
+
+    .section-card:nth-child(4) {
+      animation-delay: .26s;
+    }
+
+    .section-card:nth-child(5) {
+      animation-delay: .33s;
     }
   </style>
 </head>
+
 <body>
 
-  <header class="header">
-    <div class="badge">🛡 Auto Insurance</div>
-    <h1>Fraud Detection System</h1>
-    <p>Enter claim details below to get an instant fraud prediction</p>
-  </header>
+  <!-- ── Loading overlay ── -->
+  <div id="loading-overlay">
+    <div class="spinner"></div>
+    <p><i class="fa fa-robot"></i> &nbsp;Analyzing Claim Risk…</p>
+  </div>
 
-  <div class="card">
+  <!-- ══════════════════════════════════════════════════════════
+     NAV
+═══════════════════════════════════════════════════════════ -->
+  <nav>
+    <div class="nav-brand">
+      <div class="nav-logo"><i class="fa-solid fa-shield-halved"></i></div>
+      <div class="nav-brand-text">
+        <h1>InsureGuard AI</h1>
+        <p>Fraud Detection Dashboard</p>
+      </div>
+    </div>
+    <div class="nav-badges">
+      <span class="badge badge-live"><i class="fa-solid fa-circle"></i> Live Model</span>
+      <span class="badge badge-ml"><i class="fa-solid fa-brain"></i> ML Powered</span>
+    </div>
+  </nav>
+
+  <!-- ══════════════════════════════════════════════════════════
+     HERO
+═══════════════════════════════════════════════════════════ -->
+  <div class="hero">
+    <div class="hero-tag"><i class="fa-solid fa-shield-halved"></i> Fraud Risk Analysis Engine</div>
+    <h2>Auto Insurance Fraud<br>Detection Dashboard</h2>
+    <p>Enter claim details below. Our machine learning model will analyze patterns across
+      policy, incident, and claim data to assess fraud probability instantly.</p>
+    <div class="stats">
+      <div class="stat-pill"><i class="fa-solid fa-database"></i><b>1,000</b><span>Claims Trained On</span></div>
+      <div class="stat-pill"><i class="fa-solid fa-chart-bar"></i><b>76.5%</b><span>Model Accuracy</span></div>
+      <div class="stat-pill"><i class="fa-solid fa-bolt"></i><b>&lt;1s</b><span>Prediction Time</span></div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════
+     FORM
+═══════════════════════════════════════════════════════════ -->
+  <div class="page-body">
     <form id="predict-form" action="/predict" method="POST">
 
-      <!-- ── Policy Info ── -->
-      <p class="section-title">Policy Information</p>
-      <div class="grid">
-        <div class="field">
-          <label for="months_as_customer">Months as Customer</label>
-          <input type="number" id="months_as_customer" name="months_as_customer" value="200" min="0" max="500" required/>
+      <!-- ── 1. Policy Information ── -->
+      <div class="section-card">
+        <div class="section-header">
+          <div class="section-icon si-policy"><i class="fa-solid fa-file-contract"></i></div>
+          <div class="section-header-text">
+            <h3>Policy Information</h3>
+            <p>Insurance policy details and financial parameters</p>
+          </div>
         </div>
-        <div class="field">
-          <label for="age">Insured Age</label>
-          <input type="number" id="age" name="age" value="35" min="18" max="90" required/>
-        </div>
-        <div class="field">
-          <label for="policy_state">Policy State</label>
-          <select id="policy_state" name="policy_state" required>
-            <option value="OH">OH</option>
-            <option value="IN">IN</option>
-            <option value="IL">IL</option>
-          </select>
-        </div>
-        <div class="field">
-          <label for="policy_csl">Policy CSL</label>
-          <select id="policy_csl" name="policy_csl" required>
-            <option value="100/300">100/300</option>
-            <option value="250/500" selected>250/500</option>
-            <option value="500/1000">500/1000</option>
-          </select>
-        </div>
-        <div class="field">
-          <label for="policy_deductable">Policy Deductible ($)</label>
-          <input type="number" id="policy_deductable" name="policy_deductable" value="1000" min="500" max="2000" required/>
-        </div>
-        <div class="field">
-          <label for="policy_annual_premium">Annual Premium ($)</label>
-          <input type="number" id="policy_annual_premium" name="policy_annual_premium" value="1200" step="0.01" required/>
-        </div>
-        <div class="field">
-          <label for="umbrella_limit">Umbrella Limit ($)</label>
-          <input type="number" id="umbrella_limit" name="umbrella_limit" value="0" step="1000000" required/>
+        <div class="section-body">
+
+          <div class="field">
+            <label><i class="fa-solid fa-calendar"></i> Months as Customer
+              <span class="tip" data-tip="How long the insured has held this policy"><i
+                  class="fa-solid fa-circle-info"></i></span>
+            </label>
+            <input type="number" id="months_as_customer" name="months_as_customer" value="200" min="0" max="500"
+              required />
+          </div>
+
+          <div class="field">
+            <label><i class="fa-solid fa-user"></i> Insured Age</label>
+            <input type="number" id="age" name="age" value="35" min="18" max="90" required />
+          </div>
+
+          <div class="field">
+            <label><i class="fa-solid fa-location-dot"></i> Policy State</label>
+            <select id="policy_state" name="policy_state" required>
+              <option value="OH">OH – Ohio</option>
+              <option value="IN">IN – Indiana</option>
+              <option value="IL">IL – Illinois</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label><i class="fa-solid fa-scale-balanced"></i> Policy CSL
+              <span class="tip" data-tip="Combined Single Limit (bodily injury + property damage)"><i
+                  class="fa-solid fa-circle-info"></i></span>
+            </label>
+            <select id="policy_csl" name="policy_csl" required>
+              <option value="100/300">100/300</option>
+              <option value="250/500" selected>250/500</option>
+              <option value="500/1000">500/1000</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label><i class="fa-solid fa-dollar-sign"></i> Deductible ($)</label>
+            <input type="number" id="policy_deductable" name="policy_deductable" value="1000" min="500" max="2000"
+              required />
+          </div>
+
+          <div class="field">
+            <label><i class="fa-solid fa-receipt"></i> Annual Premium ($)</label>
+            <input type="number" id="policy_annual_premium" name="policy_annual_premium" value="1200" step="0.01"
+              required />
+          </div>
+
+          <div class="field">
+            <label><i class="fa-solid fa-umbrella"></i> Umbrella Limit ($)
+              <span class="tip" data-tip="Additional liability coverage beyond standard limits"><i
+                  class="fa-solid fa-circle-info"></i></span>
+            </label>
+            <input type="number" id="umbrella_limit" name="umbrella_limit" value="0" step="1000000" required />
+          </div>
+
+          <div class="field">
+            <label><i class="fa-solid fa-chart-line"></i> Capital Gains ($)</label>
+            <input type="number" id="capital-gains" name="capital-gains" value="0" required />
+          </div>
+
+          <div class="field">
+            <label><i class="fa-solid fa-chart-line fa-flip-vertical"></i> Capital Loss ($)</label>
+            <input type="number" id="capital-loss" name="capital-loss" value="0" required />
+          </div>
+
         </div>
       </div>
 
-      <!-- ── Insured Info ── -->
-      <p class="section-title">Insured Information</p>
-      <div class="grid">
-        <div class="field">
-          <label for="insured_sex">Sex</label>
-          <select id="insured_sex" name="insured_sex" required>
-            <option value="MALE">Male</option>
-            <option value="FEMALE">Female</option>
-          </select>
+      <!-- ── 2. Insured Information ── -->
+      <div class="section-card">
+        <div class="section-header">
+          <div class="section-icon si-insured"><i class="fa-solid fa-id-card"></i></div>
+          <div class="section-header-text">
+            <h3>Insured Information</h3>
+            <p>Demographic and personal profile of the insured party</p>
+          </div>
         </div>
-        <div class="field">
-          <label for="insured_education_level">Education Level</label>
-          <select id="insured_education_level" name="insured_education_level" required>
-            <option value="High School">High School</option>
-            <option value="Associate">Associate</option>
-            <option value="College" selected>College</option>
-            <option value="Masters">Masters</option>
-            <option value="MD">MD</option>
-            <option value="PhD">PhD</option>
-            <option value="JD">JD</option>
-          </select>
-        </div>
-        <div class="field">
-          <label for="insured_occupation">Occupation</label>
-          <select id="insured_occupation" name="insured_occupation" required>
-            <option value="tech-support">Tech Support</option>
-            <option value="craft-repair">Craft Repair</option>
-            <option value="other-service">Other Service</option>
-            <option value="sales">Sales</option>
-            <option value="exec-managerial" selected>Exec Managerial</option>
-            <option value="prof-specialty">Prof Specialty</option>
-            <option value="handlers-cleaners">Handlers Cleaners</option>
-            <option value="machine-op-inspct">Machine Op Inspct</option>
-            <option value="adm-clerical">Adm Clerical</option>
-            <option value="farming-fishing">Farming Fishing</option>
-            <option value="transport-moving">Transport Moving</option>
-            <option value="priv-house-serv">Priv House Serv</option>
-            <option value="protective-serv">Protective Serv</option>
-            <option value="armed-forces">Armed Forces</option>
-          </select>
-        </div>
-        <div class="field">
-          <label for="insured_hobbies">Hobbies</label>
-          <select id="insured_hobbies" name="insured_hobbies" required>
-            <option value="sleeping">Sleeping</option>
-            <option value="reading">Reading</option>
-            <option value="board-games">Board Games</option>
-            <option value="bungie-jumping">Bungie Jumping</option>
-            <option value="base-jumping">Base Jumping</option>
-            <option value="polo">Polo</option>
-            <option value="paintball">Paintball</option>
-            <option value="kayaking" selected>Kayaking</option>
-            <option value="golf">Golf</option>
-            <option value="camping">Camping</option>
-            <option value="dancing">Dancing</option>
-            <option value="skydiving">Skydiving</option>
-            <option value="movies">Movies</option>
-            <option value="hiking">Hiking</option>
-            <option value="yachting">Yachting</option>
-            <option value="chess">Chess</option>
-            <option value="cross-fit">Cross-fit</option>
-            <option value="exercise">Exercise</option>
-            <option value="video-games">Video Games</option>
-            <option value="team-sports">Team Sports</option>
-          </select>
-        </div>
-        <div class="field">
-          <label for="insured_relationship">Relationship</label>
-          <select id="insured_relationship" name="insured_relationship" required>
-            <option value="husband" selected>Husband</option>
-            <option value="other-relative">Other Relative</option>
-            <option value="own-child">Own Child</option>
-            <option value="unmarried">Unmarried</option>
-            <option value="wife">Wife</option>
-            <option value="not-in-family">Not in Family</option>
-          </select>
-        </div>
-        <div class="field">
-          <label for="capital-gains">Capital Gains ($)</label>
-          <input type="number" id="capital-gains" name="capital-gains" value="0" required/>
-        </div>
-        <div class="field">
-          <label for="capital-loss">Capital Loss ($)</label>
-          <input type="number" id="capital-loss" name="capital-loss" value="0" required/>
+        <div class="section-body">
+
+          <div class="field">
+            <label><i class="fa-solid fa-venus-mars"></i> Sex</label>
+            <select id="insured_sex" name="insured_sex" required>
+              <option value="MALE">Male</option>
+              <option value="FEMALE">Female</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label><i class="fa-solid fa-graduation-cap"></i> Education Level</label>
+            <select id="insured_education_level" name="insured_education_level" required>
+              <option value="High School">High School</option>
+              <option value="Associate">Associate</option>
+              <option value="College" selected>College</option>
+              <option value="Masters">Masters</option>
+              <option value="MD">MD</option>
+              <option value="PhD">PhD</option>
+              <option value="JD">JD</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label><i class="fa-solid fa-briefcase"></i> Occupation</label>
+            <select id="insured_occupation" name="insured_occupation" required>
+              <option value="tech-support">Tech Support</option>
+              <option value="craft-repair">Craft Repair</option>
+              <option value="other-service">Other Service</option>
+              <option value="sales">Sales</option>
+              <option value="exec-managerial" selected>Exec Managerial</option>
+              <option value="prof-specialty">Prof Specialty</option>
+              <option value="handlers-cleaners">Handlers Cleaners</option>
+              <option value="machine-op-inspct">Machine Op Inspct</option>
+              <option value="adm-clerical">Adm Clerical</option>
+              <option value="farming-fishing">Farming Fishing</option>
+              <option value="transport-moving">Transport Moving</option>
+              <option value="priv-house-serv">Priv House Serv</option>
+              <option value="protective-serv">Protective Serv</option>
+              <option value="armed-forces">Armed Forces</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label><i class="fa-solid fa-gamepad"></i> Hobbies
+              <span class="tip" data-tip="High-risk hobbies may correlate with injury claims"><i
+                  class="fa-solid fa-circle-info"></i></span>
+            </label>
+            <select id="insured_hobbies" name="insured_hobbies" required>
+              <option value="sleeping">Sleeping</option>
+              <option value="reading">Reading</option>
+              <option value="board-games">Board Games</option>
+              <option value="bungie-jumping">Bungie Jumping</option>
+              <option value="base-jumping">Base Jumping</option>
+              <option value="polo">Polo</option>
+              <option value="paintball">Paintball</option>
+              <option value="kayaking" selected>Kayaking</option>
+              <option value="golf">Golf</option>
+              <option value="camping">Camping</option>
+              <option value="dancing">Dancing</option>
+              <option value="skydiving">Skydiving</option>
+              <option value="movies">Movies</option>
+              <option value="hiking">Hiking</option>
+              <option value="yachting">Yachting</option>
+              <option value="chess">Chess</option>
+              <option value="cross-fit">Cross-fit</option>
+              <option value="exercise">Exercise</option>
+              <option value="video-games">Video Games</option>
+              <option value="team-sports">Team Sports</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label><i class="fa-solid fa-people-roof"></i> Relationship</label>
+            <select id="insured_relationship" name="insured_relationship" required>
+              <option value="husband" selected>Husband</option>
+              <option value="other-relative">Other Relative</option>
+              <option value="own-child">Own Child</option>
+              <option value="unmarried">Unmarried</option>
+              <option value="wife">Wife</option>
+              <option value="not-in-family">Not in Family</option>
+            </select>
+          </div>
+
         </div>
       </div>
 
-      <!-- ── Incident Details ── -->
-      <p class="section-title">Incident Details</p>
-      <div class="grid">
-        <div class="field">
-          <label for="incident_type">Incident Type</label>
-          <select id="incident_type" name="incident_type" required>
-            <option value="Single Vehicle Collision" selected>Single Vehicle Collision</option>
-            <option value="Vehicle Theft">Vehicle Theft</option>
-            <option value="Multi-vehicle Collision">Multi-vehicle Collision</option>
-            <option value="Parked Car">Parked Car</option>
-          </select>
+      <!-- ── 3. Incident Details ── -->
+      <div class="section-card">
+        <div class="section-header">
+          <div class="section-icon si-incident"><i class="fa-solid fa-car-burst"></i></div>
+          <div class="section-header-text">
+            <h3>Incident Details</h3>
+            <p>Accident circumstances, severity, and authority involvement</p>
+          </div>
         </div>
-        <div class="field">
-          <label for="collision_type">Collision Type</label>
-          <select id="collision_type" name="collision_type" required>
-            <option value="Side Collision" selected>Side Collision</option>
-            <option value="Rear Collision">Rear Collision</option>
-            <option value="Front Collision">Front Collision</option>
-            <option value="?">Unknown / N/A</option>
-          </select>
-        </div>
-        <div class="field">
-          <label for="incident_severity">Incident Severity</label>
-          <select id="incident_severity" name="incident_severity" required>
-            <option value="Minor Damage" selected>Minor Damage</option>
-            <option value="Major Damage">Major Damage</option>
-            <option value="Total Loss">Total Loss</option>
-            <option value="Trivial Damage">Trivial Damage</option>
-          </select>
-        </div>
-        <div class="field">
-          <label for="authorities_contacted">Authorities Contacted</label>
-          <select id="authorities_contacted" name="authorities_contacted" required>
-            <option value="Police" selected>Police</option>
-            <option value="Fire">Fire</option>
-            <option value="Ambulance">Ambulance</option>
-            <option value="Other">Other</option>
-            <option value="None">None</option>
-          </select>
-        </div>
-        <div class="field">
-          <label for="incident_state">Incident State</label>
-          <select id="incident_state" name="incident_state" required>
-            <option value="OH">OH</option>
-            <option value="SC">SC</option>
-            <option value="WV">WV</option>
-            <option value="VA">VA</option>
-            <option value="NY">NY</option>
-            <option value="PA">PA</option>
-            <option value="NC">NC</option>
-          </select>
-        </div>
-        <div class="field">
-          <label for="incident_city">Incident City</label>
-          <select id="incident_city" name="incident_city" required>
-            <option value="Columbus">Columbus</option>
-            <option value="Riverdale">Riverdale</option>
-            <option value="Hillside">Hillside</option>
-            <option value="Arlington">Arlington</option>
-            <option value="Northbend">Northbend</option>
-            <option value="Biloxi">Biloxi</option>
-            <option value="Springfield">Springfield</option>
-          </select>
-        </div>
-        <div class="field">
-          <label for="incident_hour_of_the_day">Hour of Day (0–23)</label>
-          <input type="number" id="incident_hour_of_the_day" name="incident_hour_of_the_day" value="12" min="0" max="23" required/>
-        </div>
-        <div class="field">
-          <label for="number_of_vehicles_involved">Vehicles Involved</label>
-          <input type="number" id="number_of_vehicles_involved" name="number_of_vehicles_involved" value="1" min="1" max="4" required/>
-        </div>
-        <div class="field">
-          <label for="property_damage">Property Damage</label>
-          <select id="property_damage" name="property_damage" required>
-            <option value="YES">YES</option>
-            <option value="NO" selected>NO</option>
-            <option value="?">Unknown</option>
-          </select>
-        </div>
-        <div class="field">
-          <label for="bodily_injuries">Bodily Injuries</label>
-          <input type="number" id="bodily_injuries" name="bodily_injuries" value="0" min="0" max="2" required/>
-        </div>
-        <div class="field">
-          <label for="witnesses">Witnesses</label>
-          <input type="number" id="witnesses" name="witnesses" value="1" min="0" max="3" required/>
-        </div>
-        <div class="field">
-          <label for="police_report_available">Police Report Available</label>
-          <select id="police_report_available" name="police_report_available" required>
-            <option value="YES" selected>YES</option>
-            <option value="NO">NO</option>
-            <option value="?">Unknown</option>
-          </select>
+        <div class="section-body">
+
+          <div class="field">
+            <label><i class="fa-solid fa-triangle-exclamation"></i> Incident Type</label>
+            <select id="incident_type" name="incident_type" required>
+              <option value="Single Vehicle Collision" selected>Single Vehicle Collision</option>
+              <option value="Vehicle Theft">Vehicle Theft</option>
+              <option value="Multi-vehicle Collision">Multi-vehicle Collision</option>
+              <option value="Parked Car">Parked Car</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label><i class="fa-solid fa-car-on"></i> Collision Type</label>
+            <select id="collision_type" name="collision_type" required>
+              <option value="Side Collision" selected>Side Collision</option>
+              <option value="Rear Collision">Rear Collision</option>
+              <option value="Front Collision">Front Collision</option>
+              <option value="?">Unknown / N/A</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label><i class="fa-solid fa-gauge-high"></i> Severity
+              <span class="tip" data-tip="Damage severity significantly impacts fraud likelihood"><i
+                  class="fa-solid fa-circle-info"></i></span>
+            </label>
+            <select id="incident_severity" name="incident_severity" required>
+              <option value="Minor Damage" selected>Minor Damage</option>
+              <option value="Major Damage">Major Damage</option>
+              <option value="Total Loss">Total Loss</option>
+              <option value="Trivial Damage">Trivial Damage</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label><i class="fa-solid fa-walkie-talkie"></i> Authorities Contacted</label>
+            <select id="authorities_contacted" name="authorities_contacted" required>
+              <option value="Police" selected>Police</option>
+              <option value="Fire">Fire</option>
+              <option value="Ambulance">Ambulance</option>
+              <option value="Other">Other</option>
+              <option value="None">None</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label><i class="fa-solid fa-map-location-dot"></i> Incident State</label>
+            <select id="incident_state" name="incident_state" required>
+              <option value="OH">OH</option>
+              <option value="SC">SC</option>
+              <option value="WV">WV</option>
+              <option value="VA">VA</option>
+              <option value="NY">NY</option>
+              <option value="PA">PA</option>
+              <option value="NC">NC</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label><i class="fa-solid fa-city"></i> Incident City</label>
+            <select id="incident_city" name="incident_city" required>
+              <option value="Columbus">Columbus</option>
+              <option value="Riverdale">Riverdale</option>
+              <option value="Hillside">Hillside</option>
+              <option value="Arlington">Arlington</option>
+              <option value="Northbend">Northbend</option>
+              <option value="Biloxi">Biloxi</option>
+              <option value="Springfield">Springfield</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label><i class="fa-regular fa-clock"></i> Hour of Day (0–23)
+              <span class="tip" data-tip="Late-night incidents (0–5 AM) have higher fraud correlation"><i
+                  class="fa-solid fa-circle-info"></i></span>
+            </label>
+            <input type="number" id="incident_hour_of_the_day" name="incident_hour_of_the_day" value="12" min="0"
+              max="23" required />
+          </div>
+
+          <div class="field">
+            <label><i class="fa-solid fa-cars"></i> Vehicles Involved</label>
+            <input type="number" id="number_of_vehicles_involved" name="number_of_vehicles_involved" value="1" min="1"
+              max="4" required />
+          </div>
+
+          <div class="field">
+            <label><i class="fa-solid fa-house-damage"></i> Property Damage</label>
+            <select id="property_damage" name="property_damage" required>
+              <option value="YES">YES</option>
+              <option value="NO" selected>NO</option>
+              <option value="?">Unknown</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label><i class="fa-solid fa-person-falling-burst"></i> Bodily Injuries</label>
+            <input type="number" id="bodily_injuries" name="bodily_injuries" value="0" min="0" max="2" required />
+          </div>
+
+          <div class="field">
+            <label><i class="fa-solid fa-user-group"></i> Witnesses
+              <span class="tip" data-tip="Fewer witnesses may indicate a staged incident"><i
+                  class="fa-solid fa-circle-info"></i></span>
+            </label>
+            <input type="number" id="witnesses" name="witnesses" value="1" min="0" max="3" required />
+          </div>
+
+          <div class="field">
+            <label><i class="fa-solid fa-file-lines"></i> Police Report Available</label>
+            <select id="police_report_available" name="police_report_available" required>
+              <option value="YES" selected>YES</option>
+              <option value="NO">NO</option>
+              <option value="?">Unknown</option>
+            </select>
+          </div>
+
         </div>
       </div>
 
-      <!-- ── Claim Amounts ── -->
-      <p class="section-title">Claim Amounts</p>
-      <div class="grid">
-        <div class="field">
-          <label for="total_claim_amount">Total Claim Amount ($)</label>
-          <input type="number" id="total_claim_amount" name="total_claim_amount" value="20000" min="0" required/>
+      <!-- ── 4. Claim Amounts ── -->
+      <div class="section-card">
+        <div class="section-header">
+          <div class="section-icon si-claim"><i class="fa-solid fa-sack-dollar"></i></div>
+          <div class="section-header-text">
+            <h3>Claim Amounts</h3>
+            <p>Financial breakdown of the submitted insurance claim</p>
+          </div>
         </div>
-        <div class="field">
-          <label for="injury_claim">Injury Claim ($)</label>
-          <input type="number" id="injury_claim" name="injury_claim" value="5000" min="0" required/>
-        </div>
-        <div class="field">
-          <label for="property_claim">Property Claim ($)</label>
-          <input type="number" id="property_claim" name="property_claim" value="5000" min="0" required/>
-        </div>
-        <div class="field">
-          <label for="vehicle_claim">Vehicle Claim ($)</label>
-          <input type="number" id="vehicle_claim" name="vehicle_claim" value="10000" min="0" required/>
+        <div class="section-body">
+
+          <div class="field">
+            <label><i class="fa-solid fa-dollar-sign"></i> Total Claim ($)
+              <span class="tip" data-tip="Must equal injury + property + vehicle claims"><i
+                  class="fa-solid fa-circle-info"></i></span>
+            </label>
+            <input type="number" id="total_claim_amount" name="total_claim_amount" value="20000" min="0" required />
+          </div>
+
+          <div class="field">
+            <label><i class="fa-solid fa-heart-pulse"></i> Injury Claim ($)</label>
+            <input type="number" id="injury_claim" name="injury_claim" value="5000" min="0" required />
+          </div>
+
+          <div class="field">
+            <label><i class="fa-solid fa-house-crack"></i> Property Claim ($)</label>
+            <input type="number" id="property_claim" name="property_claim" value="5000" min="0" required />
+          </div>
+
+          <div class="field">
+            <label><i class="fa-solid fa-car-rear"></i> Vehicle Claim ($)</label>
+            <input type="number" id="vehicle_claim" name="vehicle_claim" value="10000" min="0" required />
+          </div>
+
         </div>
       </div>
 
-      <!-- ── Vehicle Info ── -->
-      <p class="section-title">Vehicle Information</p>
-      <div class="grid">
-        <div class="field">
-          <label for="auto_make">Auto Make</label>
-          <select id="auto_make" name="auto_make" required>
-            <option value="Saab">Saab</option>
-            <option value="Mercedes">Mercedes</option>
-            <option value="Dodge">Dodge</option>
-            <option value="Chevrolet">Chevrolet</option>
-            <option value="Accura">Accura</option>
-            <option value="BMW">BMW</option>
-            <option value="Ford" selected>Ford</option>
-            <option value="Honda">Honda</option>
-            <option value="Jeep">Jeep</option>
-            <option value="Nissan">Nissan</option>
-            <option value="Suburu">Suburu</option>
-            <option value="Toyota">Toyota</option>
-            <option value="Volkswagen">Volkswagen</option>
-            <option value="Audi">Audi</option>
-          </select>
+      <!-- ── 5. Vehicle Info ── -->
+      <div class="section-card">
+        <div class="section-header">
+          <div class="section-icon si-vehicle"><i class="fa-solid fa-car-side"></i></div>
+          <div class="section-header-text">
+            <h3>Vehicle Information</h3>
+            <p>Details about the insured vehicle involved in the incident</p>
+          </div>
         </div>
-        <div class="field">
-          <label for="auto_year">Auto Year</label>
-          <input type="number" id="auto_year" name="auto_year" value="2010" min="1995" max="2015" required/>
+        <div class="section-body">
+
+          <div class="field">
+            <label><i class="fa-solid fa-industry"></i> Auto Make</label>
+            <select id="auto_make" name="auto_make" required>
+              <option value="Saab">Saab</option>
+              <option value="Mercedes">Mercedes</option>
+              <option value="Dodge">Dodge</option>
+              <option value="Chevrolet">Chevrolet</option>
+              <option value="Accura">Accura</option>
+              <option value="BMW">BMW</option>
+              <option value="Ford" selected>Ford</option>
+              <option value="Honda">Honda</option>
+              <option value="Jeep">Jeep</option>
+              <option value="Nissan">Nissan</option>
+              <option value="Suburu">Suburu</option>
+              <option value="Toyota">Toyota</option>
+              <option value="Volkswagen">Volkswagen</option>
+              <option value="Audi">Audi</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label><i class="fa-solid fa-calendar-days"></i> Auto Year</label>
+            <input type="number" id="auto_year" name="auto_year" value="2010" min="1995" max="2015" required />
+          </div>
+
         </div>
       </div>
 
-      <div class="btn-wrap">
-        <button type="submit" id="predict-btn">🔍 Predict Fraud</button>
+      <!-- ── Submit ── -->
+      <div class="submit-area">
+        <p><i class="fa-solid fa-lock"></i> Your data is processed locally and not stored</p>
+        <button type="submit" class="btn-submit" id="predict-btn">
+          <i class="fa-solid fa-magnifying-glass-chart"></i>
+          Analyze Fraud Risk
+        </button>
       </div>
+
     </form>
   </div>
 
+  <!-- ══════════════════════════════════════════════════════════
+     SCRIPTS
+═══════════════════════════════════════════════════════════ -->
+  <script>
+    document.getElementById('predict-form').addEventListener('submit', function () {
+      document.getElementById('loading-overlay').classList.add('active');
+    });
+  </script>
+
 </body>
+
 </html>
